@@ -4,10 +4,7 @@
     android:layout_height="match_parent"
     tools:context="com.example.camera360.testcamera.CameraFragment">
 
-    <SurfaceView
-        android:id="@+id/cameraview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+
 
     <ImageButton
         android:id="@+id/takephoto_btn"
