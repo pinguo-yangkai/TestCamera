@@ -83,6 +83,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        Log.d("11111111111","surfaceCreated");
         try {
             mCamera.setPreviewDisplay(mHolder);
         } catch (IOException e) {
@@ -93,13 +94,14 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        Log.d("11111111111","surfaceChanged");
         mSurfaceChangedCallDepth++;
         doSurfaceChanged(width, height);
         mSurfaceChangedCallDepth--;
     }
 
     private void doSurfaceChanged(int width, int height) {
-        mCamera.stopPreview();
+        stopPreview();
 
         Camera.Parameters cameraParams = mCamera.getParameters();
         boolean portrait = isPortrait();
@@ -123,7 +125,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mSurfaceConfiguring = false;
 
         try {
-            mCamera.startPreview();
+            startPreView();
         } catch (Exception e) {
 
             mPreviewSizeList.remove(mPreviewSize);
@@ -133,7 +135,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             if (mPreviewSizeList.size() > 0) { // prevent infinite loop
                 surfaceChanged(null, 0, width, height);
             } else {
-                Toast.makeText(mActivity, "不能呢个开启预览", Toast.LENGTH_LONG).show();
+                Toast.makeText(mActivity, "不能开启预览", Toast.LENGTH_LONG).show();
 
             }
         }
@@ -175,9 +177,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         for (Camera.Size size : mPreviewSizeList) {
             curRatio = ((float) size.width) / size.height;
             deltaRatio = Math.abs(reqRatio - curRatio);
+
             if (deltaRatio < deltaRatioMin) {
                 deltaRatioMin = deltaRatio;
                 retSize = size;
+                Log.d(LOG_TAG, " reqRatio: " + reqRatio + ", curRatio: " + curRatio + ", deltaRatio: " + deltaRatio);
             }
         }
 
@@ -313,17 +317,33 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        stop();
+        Log.d("11111111111","surfaceDestroyed");
+        stopPreview();
     }
 
+
+    /**
+     * 释放相机
+     */
     public void stop() {
         if (null == mCamera) {
             return;
         }
-        mCamera.stopPreview();
+        stopPreview();
         mCamera.release();
         mCamera = null;
     }
+
+    /**
+     * 停止预览
+     */
+    public void stopPreview(){
+        if (null == mCamera) {
+            return;
+        }
+        mCamera.stopPreview();
+    }
+
 
     public boolean isPortrait() {
         return (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT);
@@ -376,9 +396,69 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     /**
      *
      */
-    public void startPreView(){
+    public void startPreView() {
         if (null != mCamera) {
             mCamera.startPreview();
         }
     }
+
+    /**
+     * 是否支持变焦
+     *
+     * @return
+     */
+    public Boolean isZoomSupport() {
+        Boolean isSupport = false;
+        if (null != mCamera) {
+            isSupport = mCamera.getParameters().isZoomSupported();
+        }
+        return isSupport;
+    }
+
+
+    /**
+     * 得到相机的缩放程度
+     *
+     * @return
+     */
+    public int getMaxZoom() {
+        int maxzoom = 0;
+        if (null != mCamera) {
+            Camera.Parameters parameters = mCamera.getParameters();
+            maxzoom = parameters.getMaxZoom();
+        }
+        return maxzoom;
+    }
+
+    /**
+     * 得到当前缩放
+     *
+     * @return
+     */
+    public int getCurrentZoom() {
+        int zoom = 0;
+        if (null != mCamera) {
+            Camera.Parameters parameters = mCamera.getParameters();
+            zoom = parameters.getZoom();
+        }
+        return zoom;
+    }
+
+
+    /**
+     * 设置缩放程度
+     * @param zoom
+     */
+    public void setZoom(int zoom) {
+        if (null != mCamera) {
+            Camera.Parameters parameters = mCamera.getParameters();
+            if (zoom < 0 || zoom > getMaxZoom())
+                return;
+            Log.d("zoom",zoom+"");
+            parameters.setZoom(zoom);
+            mCamera.setParameters(parameters);
+        }
+    }
+
+
 }

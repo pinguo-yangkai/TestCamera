@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import java.io.File;
@@ -28,6 +29,7 @@ public class CameraFragment extends Fragment implements
     private RelativeLayout mainlayout;
     private ImageButton takePhotoBtn;
     private CameraPreview mPreview;
+    private SeekBar zoomSeekbar;
     private File saveFile;
     private boolean isLongPress = false;
 
@@ -57,23 +59,6 @@ public class CameraFragment extends Fragment implements
         return view;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        mPreview = new CameraPreview(getActivity(), 0, CameraPreview.LayoutMode.FitToParent);
-        RelativeLayout.LayoutParams previewLayoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        mainlayout.addView(mPreview, 0, previewLayoutParams);
-    }
-
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mPreview.stop();
-        mainlayout.removeView(mPreview);
-        mPreview = null;
-    }
-
 
     /**
      * 初始化控件
@@ -84,7 +69,44 @@ public class CameraFragment extends Fragment implements
         takePhotoBtn = (ImageButton) view.findViewById(R.id.takephoto_btn);
         takePhotoBtn.setOnClickListener(this);
         takePhotoBtn.setOnLongClickListener(this);
+        zoomSeekbar = (SeekBar) view.findViewById(R.id.zoom_seekbar);
+        zoomSeekbar.setOnSeekBarChangeListener(onSeekBarChangeListener);
+
+        mPreview = new CameraPreview(getActivity(), 0, CameraPreview.LayoutMode.NoBlank);
+        RelativeLayout.LayoutParams previewLayoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        mainlayout.addView(mPreview, 0, previewLayoutParams);
+        zoomSeekbar.setMax(mPreview.getMaxZoom());
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mPreview.stop();
+        mainlayout.removeView(mPreview);
+        mPreview = null;
+    }
+
+    SeekBar.OnSeekBarChangeListener onSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+
+            if (null != mPreview && mPreview.isZoomSupport()) {
+                mPreview.setZoom(i);
+            }
+
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+
+        }
+    };
 
 
     @Override
@@ -123,7 +145,6 @@ public class CameraFragment extends Fragment implements
 
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-
             Log.d(TAG, "PictureCallback＝" + data.length);
             if (saveFile == null) {
 
