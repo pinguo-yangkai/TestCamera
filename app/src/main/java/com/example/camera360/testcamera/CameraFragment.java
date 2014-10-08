@@ -22,7 +22,7 @@ import java.util.Date;
 
 
 public class CameraFragment extends Fragment implements
-        View.OnClickListener, View.OnLongClickListener {
+        View.OnClickListener, View.OnLongClickListener,CameraPreview.PreviewReadyCallback {
 
     private String TAG = CameraFragment.this.getClass().getSimpleName();
 
@@ -72,16 +72,33 @@ public class CameraFragment extends Fragment implements
         zoomSeekbar = (SeekBar) view.findViewById(R.id.zoom_seekbar);
         zoomSeekbar.setOnSeekBarChangeListener(onSeekBarChangeListener);
 
-        mPreview = new CameraPreview(getActivity(), 0, CameraPreview.LayoutMode.NoBlank);
+        mPreview = new CameraPreview(getActivity(),CameraPreview.LayoutMode.NoBlank);
+        mPreview.setOnPreviewReady(this);
         RelativeLayout.LayoutParams previewLayoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         mainlayout.addView(mPreview, 0, previewLayoutParams);
-        zoomSeekbar.setMax(mPreview.getMaxZoom());
+
     }
+
+
+    @Override
+    public void onResume() {
+        Log.d(TAG,"onResume");
+        super.onResume();
+        mPreview.initCamera();
+    }
+
+    @Override
+    public void onPause() {
+        Log.d(TAG,"onPause");
+        super.onPause();
+        mPreview.stop();
+    }
+
+
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mPreview.stop();
         mainlayout.removeView(mPreview);
         mPreview = null;
     }
@@ -90,6 +107,7 @@ public class CameraFragment extends Fragment implements
 
         @Override
         public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+            Log.d(TAG,i+"+"+b);
 
             if (null != mPreview && mPreview.isZoomSupport()) {
                 mPreview.setZoom(i);
@@ -207,4 +225,14 @@ public class CameraFragment extends Fragment implements
     }
 
 
+    @Override
+    public void onPreviewReady() {
+        zoomSeekbar.setMax(mPreview.getMaxZoom());
+        int progress=zoomSeekbar.getProgress();
+        int zoom=(progress<=mPreview.getMaxZoom()?progress:(progress=0));
+        if (null != mPreview && mPreview.isZoomSupport()) {
+            mPreview.setZoom(progress);
+        }
+        zoomSeekbar.setCameraDistance(500);
+    }
 }
