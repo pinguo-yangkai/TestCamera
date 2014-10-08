@@ -22,7 +22,7 @@ import java.util.Date;
 
 
 public class CameraFragment extends Fragment implements
-        View.OnClickListener, View.OnLongClickListener,CameraPreview.PreviewReadyCallback {
+        View.OnClickListener, View.OnLongClickListener, CameraPreview.PreviewReadyCallback {
 
     private String TAG = CameraFragment.this.getClass().getSimpleName();
 
@@ -71,43 +71,34 @@ public class CameraFragment extends Fragment implements
         takePhotoBtn.setOnLongClickListener(this);
         zoomSeekbar = (SeekBar) view.findViewById(R.id.zoom_seekbar);
         zoomSeekbar.setOnSeekBarChangeListener(onSeekBarChangeListener);
-
-        mPreview = new CameraPreview(getActivity(),CameraPreview.LayoutMode.NoBlank);
-        mPreview.setOnPreviewReady(this);
-        RelativeLayout.LayoutParams previewLayoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        mainlayout.addView(mPreview, 0, previewLayoutParams);
-
     }
 
 
     @Override
     public void onResume() {
-        Log.d(TAG,"onResume");
+        Log.d(TAG, "onResume");
         super.onResume();
-        mPreview.initCamera();
+        mPreview = new CameraPreview(getActivity(), 0, CameraPreview.LayoutMode.NoBlank);
+        mPreview.setOnPreviewReady(this);
+        RelativeLayout.LayoutParams previewLayoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        mainlayout.addView(mPreview, 0, previewLayoutParams);
     }
 
     @Override
     public void onPause() {
-        Log.d(TAG,"onPause");
+        Log.d(TAG, "onPause");
         super.onPause();
         mPreview.stop();
-    }
-
-
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
         mainlayout.removeView(mPreview);
         mPreview = null;
     }
+
 
     SeekBar.OnSeekBarChangeListener onSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
 
         @Override
         public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-            Log.d(TAG,i+"+"+b);
+            Log.d(TAG, i + "+" + b);
 
             if (null != mPreview && mPreview.isZoomSupport()) {
                 mPreview.setZoom(i);
@@ -228,11 +219,10 @@ public class CameraFragment extends Fragment implements
     @Override
     public void onPreviewReady() {
         zoomSeekbar.setMax(mPreview.getMaxZoom());
-        int progress=zoomSeekbar.getProgress();
-        int zoom=(progress<=mPreview.getMaxZoom()?progress:(progress=0));
+        int progress = zoomSeekbar.getProgress();
+        int zoom = (progress <= mPreview.getMaxZoom() ? progress : (progress = 0));
         if (null != mPreview && mPreview.isZoomSupport()) {
             mPreview.setZoom(progress);
         }
-        zoomSeekbar.setCameraDistance(500);
     }
 }

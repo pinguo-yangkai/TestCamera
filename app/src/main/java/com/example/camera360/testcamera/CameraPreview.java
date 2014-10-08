@@ -35,7 +35,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private LayoutMode mLayoutMode;
     private int mCenterPosX = -1;
     private int mCenterPosY;
-    private int cameraId=0;
 
     PreviewReadyCallback mPreviewReadyCallback = null;
 
@@ -54,19 +53,14 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     protected boolean mSurfaceConfiguring = false;
 
-    public CameraPreview(Activity activity, LayoutMode mode) {
+    public CameraPreview(Activity activity, int cameraId, LayoutMode mode) {
         super(activity); // Always necessary
         mActivity = activity;
         mLayoutMode = mode;
         mHolder = getHolder();
         mHolder.addCallback(this);
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-    }
 
-    /**
-     * 初始化相机（主要是在Fragment或者activity的onResume里调用）
-     */
-    public void initCamera(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
             if (Camera.getNumberOfCameras() > cameraId) {
                 mCameraId = cameraId;
@@ -87,7 +81,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mPictureSizeList = cameraParams.getSupportedPictureSizes();
     }
 
-
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d("11111111111","surfaceCreated");
@@ -98,7 +91,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             mCamera = null;
         }
     }
-
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
@@ -326,6 +318,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.d("11111111111","surfaceDestroyed");
+        stop();
     }
 
 
