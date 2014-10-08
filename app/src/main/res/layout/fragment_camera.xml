@@ -12,6 +12,7 @@
         android:layout_above="@+id/takephoto_btn"
         android:progressDrawable="@drawable/zoomseekbar_seek"
         android:thumb="@drawable/zoomseekbar_thumb"
+        android:maxHeight="5dp"
         android:background="@null"
         android:layout_marginBottom="30dp"
         android:layout_marginLeft="30dp"

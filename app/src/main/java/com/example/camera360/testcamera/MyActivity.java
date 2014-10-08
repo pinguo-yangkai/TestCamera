@@ -4,11 +4,12 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
+import android.view.KeyEvent;
 
 
 public class MyActivity extends Activity {
 
-
+    CameraFragment cameraFragment;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -18,7 +19,7 @@ public class MyActivity extends Activity {
 
 
     private void addCameraFragment() {
-        addFragment(R.id.fragment_container, CameraFragment.newInstance());
+        addFragment(R.id.fragment_container, cameraFragment=CameraFragment.newInstance());
 
     }
 
@@ -27,6 +28,29 @@ public class MyActivity extends Activity {
         transaction.add(id, fragment);
         transaction.commit();
     }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        switch (keyCode) {
+
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+                if(null!=cameraFragment){
+                    cameraFragment.zoomDown();
+                }
+
+                return true;
+
+            case KeyEvent.KEYCODE_VOLUME_UP:
+                if(null!=cameraFragment){
+                    cameraFragment.zoomUp();
+                }
+
+                return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
 
 
 }
