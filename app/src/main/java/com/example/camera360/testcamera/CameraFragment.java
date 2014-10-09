@@ -1,6 +1,7 @@
 package com.example.camera360.testcamera;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -31,6 +33,9 @@ import java.util.List;
 public class CameraFragment extends Fragment implements
         View.OnClickListener, View.OnLongClickListener, CameraPreview.PreviewReadyCallback, AdapterView.OnItemSelectedListener {
 
+
+    public static final String SAVE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "camerademo";
+
     private String TAG = CameraFragment.this.getClass().getSimpleName();
 
     private RelativeLayout mainlayout;
@@ -42,6 +47,8 @@ public class CameraFragment extends Fragment implements
     //预览尺寸Adapter
     private ArrayAdapter<String> sizeAdapter;
     private Spinner sizeSpinner;
+
+    private Button photoButton;
 
     public static CameraFragment newInstance() {
         CameraFragment fragment = new CameraFragment();
@@ -93,6 +100,9 @@ public class CameraFragment extends Fragment implements
         sizeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sizeSpinner.setAdapter(sizeAdapter);
         sizeSpinner.setOnItemSelectedListener(this);
+
+        photoButton = (Button) view.findViewById(R.id.photo_btn);
+        photoButton.setOnClickListener(this);
     }
 
     /**
@@ -210,6 +220,11 @@ public class CameraFragment extends Fragment implements
                     mPreview.takePacture(mPicture);
                 }
                 break;
+            case R.id.photo_btn:
+                Intent intent=new Intent(getActivity(),PhotosActivity.class);
+                startActivity(intent);
+
+                break;
 
         }
     }
@@ -279,9 +294,9 @@ public class CameraFragment extends Fragment implements
             return;
         }
 
-        String savepath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "camerademo";
-        Log.d(TAG, "path＝" + savepath);
-        saveFile = new File(savepath);
+
+        Log.d(TAG, "path＝" + SAVE_PATH);
+        saveFile = new File(SAVE_PATH);
         if (!saveFile.exists()) {
             saveFile.mkdir();
         }
