@@ -1,6 +1,7 @@
 package com.example.camera360.testcamera;
 
 import android.app.Fragment;
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Environment;
@@ -10,9 +11,12 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.io.File;
@@ -21,24 +25,24 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
+import java.util.List;
 
 
 public class CameraFragment extends Fragment implements
-        View.OnClickListener, View.OnLongClickListener, CameraPreview.PreviewReadyCallback {
+        View.OnClickListener, View.OnLongClickListener, CameraPreview.PreviewReadyCallback, AdapterView.OnItemSelectedListener {
 
     private String TAG = CameraFragment.this.getClass().getSimpleName();
 
     private RelativeLayout mainlayout;
     private ImageButton takePhotoBtn;
-    private CameraPreview mPreview;
+    private ResizableCameraPreview mPreview;
     private SeekBar zoomSeekbar;
     private File saveFile;
     private boolean isLongPress = false;
+    //预览尺寸Adapter
+    private ArrayAdapter<String> sizeAdapter;
+    private Spinner sizeSpinner;
 
-
-
-    // TODO: Rename and change types and number of parameters
     public static CameraFragment newInstance() {
         CameraFragment fragment = new CameraFragment();
         return fragment;
@@ -83,6 +87,59 @@ public class CameraFragment extends Fragment implements
                 return false;
             }
         });
+
+        sizeSpinner = (Spinner) view.findViewById(R.id.size_spinner);
+        sizeAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item);
+        sizeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sizeSpinner.setAdapter(sizeAdapter);
+        sizeSpinner.setOnItemSelectedListener(this);
+    }
+
+    /**
+     * 现实便教条两秒
+     */
+    public void showSeekbar() {
+        handler.removeCallbacks(runnable);
+        zoomSeekbar.setVisibility(View.VISIBLE);
+        handler.postDelayed(runnable, 2000);
+    }
+
+    Handler handler = new Handler() {
+
+    };
+
+    /**
+     * 对焦seekbar消失Runable
+     */
+    Runnable runnable = new Runnable() {
+
+        @Override
+        public void run() {
+            zoomSeekbar.setVisibility(View.GONE);
+        }
+    };
+
+
+    @Override
+    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+        switch (adapterView.getId()) {
+            case R.id.size_spinner:
+                Rect rect = new Rect();
+                mainlayout.getDrawingRect(rect);
+
+                if (0 == i) {
+                    mPreview.surfaceChanged(null, 0, rect.width(), rect.height());
+                } else {
+                    mPreview.setPreviewSize(i - 1, rect.width(), rect.height());
+                }
+                break;
+
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
+
     }
 
 
@@ -90,7 +147,7 @@ public class CameraFragment extends Fragment implements
     public void onResume() {
         Log.d(TAG, "onResume");
         super.onResume();
-        mPreview = new CameraPreview(getActivity(), 0, CameraPreview.LayoutMode.NoBlank);
+        mPreview = new ResizableCameraPreview(getActivity(), 0, CameraPreview.LayoutMode.FitToParent);
         mPreview.setOnPreviewReady(this);
         mPreview.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,34 +157,15 @@ public class CameraFragment extends Fragment implements
         });
         RelativeLayout.LayoutParams previewLayoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         mainlayout.addView(mPreview, 0, previewLayoutParams);
-    }
+        zoomSeekbar.setMax(mPreview.getMaxZoom());
 
-
-    /**
-     * 现实便教条两秒
-     */
-    public void showSeekbar(){
-        handler.removeCallbacks(runnable);
-        zoomSeekbar.setVisibility(View.VISIBLE);
-        handler.postDelayed(runnable,2000);
-    }
-
-    Handler handler=new Handler() {
-
-    };
-
-    /**
-     * 对焦seekbar消失Runable
-     */
-    Runnable runnable=new Runnable(){
-
-        @Override
-        public void run() {
-            zoomSeekbar.setVisibility(View.GONE);
+        sizeAdapter.clear();
+        sizeAdapter.add("默认");
+        List<Camera.Size> sizes = mPreview.getSupportedPreivewSizes();
+        for (Camera.Size size : sizes) {
+            sizeAdapter.add(size.width + " x " + size.height);
         }
-    };
-
-
+    }
 
 
     @Override
@@ -264,7 +302,7 @@ public class CameraFragment extends Fragment implements
 
     @Override
     public void onPreviewReady() {
-        zoomSeekbar.setMax(mPreview.getMaxZoom());
+
         int progress = zoomSeekbar.getProgress();
         int zoom = (progress <= mPreview.getMaxZoom() ? progress : (progress = 0));
         if (null != mPreview && mPreview.isZoomSupport()) {
@@ -279,7 +317,7 @@ public class CameraFragment extends Fragment implements
     public void zoomUp() {
         showSeekbar();
         int progress = zoomSeekbar.getProgress();
-        if (progress<zoomSeekbar.getMax()){
+        if (progress < zoomSeekbar.getMax()) {
             progress++;
             zoomSeekbar.setProgress(progress);
         }
@@ -291,7 +329,7 @@ public class CameraFragment extends Fragment implements
     public void zoomDown() {
         showSeekbar();
         int progress = zoomSeekbar.getProgress();
-        if (progress>0){
+        if (progress > 0) {
             progress--;
             zoomSeekbar.setProgress(progress);
         }
