@@ -6,6 +6,6 @@
     <ImageView
         android:id="@+id/photos_item_imageview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="100dp" />
 
 </RelativeLayout>
