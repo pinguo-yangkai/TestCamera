@@ -36,7 +36,7 @@ public class CameraFragment extends Fragment implements
 
     public static final String SAVE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "camerademo";
 
-    private String TAG = CameraFragment.this.getClass().getSimpleName();
+    private String TAG = "CameraFragment";
 
     private RelativeLayout mainlayout;
     private ImageButton takePhotoBtn;
@@ -175,6 +175,8 @@ public class CameraFragment extends Fragment implements
         for (Camera.Size size : sizes) {
             sizeAdapter.add(size.width + " x " + size.height);
         }
+        sizeAdapter.notifyDataSetChanged();
+        sizeSpinner.setAdapter(sizeAdapter);
     }
 
 
