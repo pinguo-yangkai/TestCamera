@@ -1,29 +1,32 @@
 package com.example.camera360.testcamera;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.CursorAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 
 public class PhotosActivity extends Activity {
 
-    private static final String TAG="PhotosActivity";
+    private static final String TAG = "PhotosActivity";
 
     private GridView photosGridview;
 
@@ -65,23 +68,27 @@ public class PhotosActivity extends Activity {
      * 初始化数据
      */
     private void initData() {
-        File file = new File(CameraFragment.SAVE_PATH);
-        List<PhotoEntry> photos = null;
-        if (file.exists()) {
-            photos = new ArrayList<PhotoEntry>();
-            File[] files = file.listFiles();
+//        File file = new File(CameraFragment.SAVE_PATH);
+//        List<PhotoEntry> photos = null;
+//        if (file.exists()) {
+//            photos = new ArrayList<PhotoEntry>();
+//            File[] files = file.listFiles();
+//
+//            int size = files.length;
+//            for (int i = 0; i < size; i++) {
+//                PhotoEntry photoEntry = new PhotoEntry();
+//                photoEntry.uri =   Uri.fromFile(files[i]);
+//                Log.d(TAG, files[i].getAbsolutePath());
+//                photos.add(photoEntry);
+//            }
+//        }
+        String[] proj = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA, MediaStore.Images.Media.TITLE};
+        String selecttions = MediaStore.Images.Media.DESCRIPTION + " = ?";
+        String[] selectionArgs = {CameraFragment.NAME_SIGN};
 
-            int size = files.length;
-            for (int i = 0; i < size; i++) {
-                PhotoEntry photoEntry = new PhotoEntry();
-                photoEntry.uri =   Uri.fromFile(files[i]);
-                Log.d(TAG, files[i].getAbsolutePath());
-                photos.add(photoEntry);
-            }
-        }
+        Cursor cursor = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, proj, selecttions, selectionArgs, null);
 
-        photosGridview.setAdapter(new PhotoAdapter(this, photos));
-
+        photosGridview.setAdapter(new PhotoCursorAdapter(this, cursor));
     }
 
 
@@ -119,7 +126,7 @@ public class PhotosActivity extends Activity {
         public View getView(int i, View view, ViewGroup viewGroup) {
             PhotosHolder holder = null;
             if (null == view) {
-                view = LayoutInflater.from(context).inflate(R.layout.phptos_item, null);
+                view = LayoutInflater.from(context).inflate(R.layout.photos_item, null);
                 view.setTag(holder = new PhotosHolder());
                 holder.photoView = (ImageView) view.findViewById(R.id.photos_item_imageview);
             } else {
@@ -127,7 +134,7 @@ public class PhotosActivity extends Activity {
             }
             PhotoEntry photoEntry = (PhotoEntry) getItem(i);
 
-            ImageLoader.getInstance().displayImage(photoEntry.uri.toString(), holder.photoView,options);
+            ImageLoader.getInstance().displayImage(photoEntry.uri.toString(), holder.photoView, options);
 
             return view;
         }
@@ -144,5 +151,39 @@ public class PhotosActivity extends Activity {
      */
     public class PhotoEntry {
         public Uri uri;
+
+        ContentResolver cr = getContentResolver();
+
+    }
+
+    class PhotoCursorAdapter extends CursorAdapter {
+
+
+        public PhotoCursorAdapter(Context context, Cursor cursor) {
+            super(context, cursor);
+
+        }
+
+        public View newView(Context context, Cursor cursor, ViewGroup parent) {
+            View view = LayoutInflater.from(context).inflate(R.layout.photos_item, null);
+
+
+            return view;
+        }
+
+        @Override
+        public void bindView(View view, Context context, Cursor cursor) {
+            ImageView photoView = (ImageView) view.findViewById(R.id.photos_item_imageview);
+            TextView titleView = (TextView) view.findViewById(R.id.photos_item_title);
+
+            String path = cursor.getString(1);
+
+            File file = new File(path);
+            Uri uri = Uri.fromFile(file);
+
+
+            ImageLoader.getInstance().displayImage(uri.toString().trim(), photoView, options);
+            titleView.setText(cursor.getString(2));
+        }
     }
 }

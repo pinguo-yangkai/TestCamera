@@ -2,11 +2,14 @@ package com.example.camera360.testcamera;
 
 import android.app.Fragment;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -22,9 +25,6 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -35,6 +35,8 @@ public class CameraFragment extends Fragment implements
 
 
     public static final String SAVE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "camerademo";
+
+    public static final String NAME_SIGN = "camerademo";
 
     private String TAG = "CameraFragment";
 
@@ -223,7 +225,7 @@ public class CameraFragment extends Fragment implements
                 }
                 break;
             case R.id.photo_btn:
-                Intent intent=new Intent(getActivity(),PhotosActivity.class);
+                Intent intent = new Intent(getActivity(), PhotosActivity.class);
                 startActivity(intent);
 
                 break;
@@ -256,30 +258,18 @@ public class CameraFragment extends Fragment implements
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
             Log.d(TAG, "PictureCallback＝" + data.length);
-            if (saveFile == null) {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
 
-                return;
-            }
-            FileOutputStream outSteam = null;
+            SimpleDateFormat format = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+            String times = format.format((new Date()));
 
-            try {
+            String name = NAME_SIGN + "_" + times;
+            Log.d(TAG, "name＝" + name);
 
-                SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
-                String times = format.format((new Date()));
-                String picpath = saveFile.getPath() + File.separator + times + ".jpg";
-                Log.d(TAG, picpath);
+            String url = MediaStore.Images.Media.insertImage(getActivity().getContentResolver(), bitmap, name, NAME_SIGN);
 
-                outSteam = new FileOutputStream(picpath);
-                outSteam.write(data);
-                outSteam.close();
-                Toast.makeText(getActivity(), "保存完成", Toast.LENGTH_SHORT).show();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
 
-            } catch (IOException e) {
-
-                e.printStackTrace();
-            }
+            bitmap.recycle();
 
             mPreview.startPreView();
         }
