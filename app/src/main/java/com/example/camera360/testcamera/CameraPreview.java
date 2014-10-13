@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.util.Log;
 import android.view.Display;
+import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -36,6 +38,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private int mCenterPosX = -1;
     private int mCenterPosY;
 
+
+    private OrientationEventListener mOrientationListener;
+
     PreviewReadyCallback mPreviewReadyCallback = null;
 
 
@@ -59,6 +64,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mLayoutMode = mode;
         mHolder = getHolder();
         mHolder.addCallback(this);
+
+
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
@@ -79,11 +86,38 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         Camera.Parameters cameraParams = mCamera.getParameters();
         mPreviewSizeList = cameraParams.getSupportedPreviewSizes();
         mPictureSizeList = cameraParams.getSupportedPictureSizes();
+
+        mOrientationListener = new OrientationEventListener(mActivity, SensorManager.SENSOR_DELAY_NORMAL) {
+
+            @Override
+            public void onOrientationChanged(int orientation) {
+
+                Log.d(LOG_TAG, orientation + "+orientation");
+                if (orientation == ORIENTATION_UNKNOWN) return;
+                android.hardware.Camera.CameraInfo info =
+                        new android.hardware.Camera.CameraInfo();
+                android.hardware.Camera.getCameraInfo(0, info);
+                orientation = (orientation + 45) / 90 * 90;
+                int rotation = 0;
+                if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                    rotation = (info.orientation - orientation + 360) % 360;
+                } else {  // back-facing camera
+                    rotation = (info.orientation + orientation) % 360;
+                }
+                Camera.Parameters parameters = mCamera.getParameters();
+                parameters.setRotation(rotation);
+                mCamera.setParameters(parameters);
+            }
+        };
+
+        Camera.Parameters parameters = mCamera.getParameters();
+        parameters.setRotation(90);
+        mCamera.setParameters(parameters);
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        Log.d("11111111111","surfaceCreated");
+        Log.d("11111111111", "surfaceCreated");
         try {
             mCamera.setPreviewDisplay(mHolder);
         } catch (IOException e) {
@@ -94,7 +128,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Log.d("11111111111","surfaceChanged");
+        Log.d("11111111111", "surfaceChanged");
         mSurfaceChangedCallDepth++;
         doSurfaceChanged(width, height);
         mSurfaceChangedCallDepth--;
@@ -312,12 +346,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             Log.v(LOG_TAG, "Picture Actual Size - w: " + mPictureSize.width + ", h: " + mPictureSize.height);
         }
 
+
         mCamera.setParameters(cameraParams);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.d("11111111111","surfaceDestroyed");
+        Log.d("11111111111", "surfaceDestroyed");
         stop();
     }
 
@@ -337,7 +372,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     /**
      * 停止预览
      */
-    public void stopPreview(){
+    public void stopPreview() {
         if (null == mCamera) {
             return;
         }
@@ -447,6 +482,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     /**
      * 设置缩放程度
+     *
      * @param zoom
      */
     public void setZoom(int zoom) {
@@ -454,7 +490,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             Camera.Parameters parameters = mCamera.getParameters();
             if (zoom < 0 || zoom > getMaxZoom())
                 return;
-            Log.d("zoom",zoom+"");
+            Log.d("zoom", zoom + "");
             parameters.setZoom(zoom);
             mCamera.setParameters(parameters);
         }
