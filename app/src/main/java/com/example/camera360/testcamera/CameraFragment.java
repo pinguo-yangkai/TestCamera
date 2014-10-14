@@ -170,6 +170,7 @@ public class CameraFragment extends Fragment implements
         RelativeLayout.LayoutParams previewLayoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         mainlayout.addView(mPreview, 0, previewLayoutParams);
         zoomSeekbar.setMax(mPreview.getMaxZoom());
+        zoomSeekbar.setProgress(0);
 
         sizeAdapter.clear();
         sizeAdapter.add("默认");
@@ -310,11 +311,11 @@ public class CameraFragment extends Fragment implements
     @Override
     public void onPreviewReady() {
 
-        int progress = zoomSeekbar.getProgress();
-        int zoom = (progress <= mPreview.getMaxZoom() ? progress : (progress = 0));
-        if (null != mPreview && mPreview.isZoomSupport()) {
-            mPreview.setZoom(progress);
-        }
+//        int progress = zoomSeekbar.getProgress();
+//        int zoom = (progress <= mPreview.getMaxZoom() ? progress : (progress = 0));
+//        if (null != mPreview && mPreview.isZoomSupport()) {
+//            mPreview.setZoom(progress);
+//        }
     }
 
 

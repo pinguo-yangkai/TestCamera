@@ -12,8 +12,9 @@
         android:id="@+id/photos_gridview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:numColumns="3"
+        android:numColumns="auto_fit"
+        android:columnWidth="100dp"
         android:verticalSpacing="5dp"
-        android:horizontalSpacing="5dp"/>
+        android:horizontalSpacing="5dp" />
 
 </RelativeLayout>
