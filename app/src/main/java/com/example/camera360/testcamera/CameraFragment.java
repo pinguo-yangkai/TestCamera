@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.hardware.Camera;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -14,10 +15,12 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -49,11 +52,13 @@ public class CameraFragment extends Fragment implements
 
     private File saveFile;
     private boolean isLongPress = false;
-    //预览尺寸Adapter
+
     private ArrayAdapter<String> sizeAdapter;
     private Spinner sizeSpinner;
 
-    private Button photoButton;
+    //    private Button photoButton;
+    private ImageView photoImageView;
+    Animation shakeAnim ;
 
     public static CameraFragment newInstance() {
         CameraFragment fragment = new CameraFragment();
@@ -68,6 +73,7 @@ public class CameraFragment extends Fragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         createSaveFile();
+        shakeAnim= AnimationUtils.loadAnimation(getActivity(), R.anim.shake_y);
     }
 
     @Override
@@ -115,8 +121,8 @@ public class CameraFragment extends Fragment implements
         sizeSpinner.setAdapter(sizeAdapter);
         sizeSpinner.setOnItemSelectedListener(this);
 
-        photoButton = (Button) view.findViewById(R.id.photo_btn);
-        photoButton.setOnClickListener(this);
+        photoImageView = (ImageView) view.findViewById(R.id.photo_imageview);
+        photoImageView.setOnClickListener(this);
     }
 
     /**
@@ -214,7 +220,7 @@ public class CameraFragment extends Fragment implements
                     isLongPress = false;
                 }
                 break;
-            case R.id.photo_btn:
+            case R.id.photo_imageview:
                 Intent intent = new Intent(getActivity(), PhotosActivity.class);
                 startActivity(intent);
 
@@ -256,7 +262,13 @@ public class CameraFragment extends Fragment implements
     };
 
 
+
+
+
+
     private class SaveImageTask extends AsyncTask<byte[], Void, Void> {
+
+        String url = null;
 
         @Override
         protected Void doInBackground(byte[]... data) {
@@ -280,7 +292,7 @@ public class CameraFragment extends Fragment implements
                 outStream.close();
 
 
-                MediaStore.Images.Media.insertImage(getActivity().getContentResolver(), outFile.getPath(), fileName, NAME_SIGN);
+                url = MediaStore.Images.Media.insertImage(getActivity().getContentResolver(), outFile.getPath(), fileName, NAME_SIGN);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -289,7 +301,18 @@ public class CameraFragment extends Fragment implements
             }
             return null;
         }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (null != url) {
+
+                photoImageView.startAnimation(shakeAnim);
+                photoImageView.setImageURI(Uri.parse(url));
+            }
+        }
     }
+
+
 
 
     /**
