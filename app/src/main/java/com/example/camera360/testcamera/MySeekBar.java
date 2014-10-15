@@ -449,7 +449,7 @@ public class MySeekBar extends View {
             mDrawUnreachedBar = true;
             mUnreachedRectF.left = unreachedBarStart;
             mUnreachedRectF.right = getWidth() - getPaddingRight();
-            mUnreachedRectF.top = getHeight() / 2.0f -mUnreachedBarHeight / 2.0f;
+            mUnreachedRectF.top = getHeight() / 2.0f - mUnreachedBarHeight / 2.0f;
             mUnreachedRectF.bottom = getHeight() / 2.0f + mUnreachedBarHeight / 2.0f;
         }
     }

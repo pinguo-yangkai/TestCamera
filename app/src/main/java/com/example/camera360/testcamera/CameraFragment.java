@@ -2,10 +2,9 @@ package com.example.camera360.testcamera;
 
 import android.app.Fragment;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.hardware.Camera;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -24,13 +23,16 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
 
 public class CameraFragment extends Fragment implements
-        View.OnClickListener, View.OnLongClickListener, CameraPreview.PreviewReadyCallback, AdapterView.OnItemSelectedListener {
+        View.OnClickListener, View.OnLongClickListener, AdapterView.OnItemSelectedListener {
 
 
     public static final String SAVE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "camerademo";
@@ -42,7 +44,7 @@ public class CameraFragment extends Fragment implements
     private RelativeLayout mainlayout;
     private ImageButton takePhotoBtn;
     private ResizableCameraPreview mPreview;
-    //    private SeekBar zoomSeekbar;
+
     private MySeekBar mySeekBar;
 
     private File saveFile;
@@ -87,16 +89,6 @@ public class CameraFragment extends Fragment implements
         takePhotoBtn = (ImageButton) view.findViewById(R.id.takephoto_btn);
         takePhotoBtn.setOnClickListener(this);
         takePhotoBtn.setOnLongClickListener(this);
-//        zoomSeekbar = (SeekBar) view.findViewById(R.id.zoom_seekbar);
-//        zoomSeekbar.setOnSeekBarChangeListener(onSeekBarChangeListener);
-//        showSeekbar();
-//        zoomSeekbar.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View view, MotionEvent motionEvent) {
-//                showSeekbar();
-//                return false;
-//            }
-//        });
 
         mySeekBar = (MySeekBar) view.findViewById(R.id.myseekbar);
         mySeekBar.setSeekBarListener(new MySeekBar.OnSeekListener() {
@@ -180,7 +172,7 @@ public class CameraFragment extends Fragment implements
         Log.d(TAG, "onResume");
         super.onResume();
         mPreview = new ResizableCameraPreview(getActivity(), 0, CameraPreview.LayoutMode.FitToParent);
-        mPreview.setOnPreviewReady(this);
+
         mPreview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -211,30 +203,6 @@ public class CameraFragment extends Fragment implements
         mainlayout.removeView(mPreview);
         mPreview = null;
     }
-
-
-//    SeekBar.OnSeekBarChangeListener onSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
-//
-//        @Override
-//        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-//            Log.d(TAG, i + "+" + b);
-//
-//            if (null != mPreview && mPreview.isZoomSupport()) {
-//                mPreview.setZoom(i);
-//            }
-//
-//        }
-//
-//        @Override
-//        public void onStartTrackingTouch(SeekBar seekBar) {
-//
-//        }
-//
-//        @Override
-//        public void onStopTrackingTouch(SeekBar seekBar) {
-//
-//        }
-//    };
 
 
     @Override
@@ -280,23 +248,48 @@ public class CameraFragment extends Fragment implements
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
             Log.d(TAG, "PictureCallback＝" + data.length);
-            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
 
-            SimpleDateFormat format = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
-            String times = format.format((new Date()));
-
-            String name = NAME_SIGN + "_" + times;
-            Log.d(TAG, "name＝" + name);
-
-            String url = MediaStore.Images.Media.insertImage(getActivity().getContentResolver(), bitmap, name, NAME_SIGN);
-
-
-            bitmap.recycle();
-
+            new SaveImageTask().execute(data);
             mPreview.startPreView();
         }
 
     };
+
+
+    private class SaveImageTask extends AsyncTask<byte[], Void, Void> {
+
+        @Override
+        protected Void doInBackground(byte[]... data) {
+            FileOutputStream outStream = null;
+
+            // Write to SD Card
+            try {
+                createSaveFile();
+
+
+                SimpleDateFormat format = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+                String times = format.format((new Date()));
+
+                String fileName = NAME_SIGN + "_" + times;
+
+                File outFile = new File(saveFile, fileName + ".jpg");
+
+                outStream = new FileOutputStream(outFile);
+                outStream.write(data[0]);
+                outStream.flush();
+                outStream.close();
+
+
+                MediaStore.Images.Media.insertImage(getActivity().getContentResolver(), outFile.getPath(), fileName, NAME_SIGN);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+            }
+            return null;
+        }
+    }
 
 
     /**
@@ -326,17 +319,6 @@ public class CameraFragment extends Fragment implements
     public static boolean hasSDCard() {
         return Environment.MEDIA_MOUNTED.equals(Environment
                 .getExternalStorageState());
-    }
-
-
-    @Override
-    public void onPreviewReady() {
-
-//        int progress = zoomSeekbar.getProgress();
-//        int zoom = (progress <= mPreview.getMaxZoom() ? progress : (progress = 0));
-//        if (null != mPreview && mPreview.isZoomSupport()) {
-//            mPreview.setZoom(progress);
-//        }
     }
 
 

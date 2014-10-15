@@ -8,12 +8,22 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="com.example.camera360.testcamera.PhotosActivity">
 
+    <TextView
+        android:id="@+id/photos_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="相册"
+        android:gravity="center"
+        android:textSize="20sp"
+        android:layout_marginBottom="10dp" />
+
     <GridView
         android:id="@+id/photos_gridview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:numColumns="auto_fit"
         android:columnWidth="100dp"
+        android:layout_below="@+id/photos_title"
         android:verticalSpacing="5dp"
         android:horizontalSpacing="5dp" />
 
