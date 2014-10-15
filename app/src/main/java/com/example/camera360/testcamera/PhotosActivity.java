@@ -5,11 +5,9 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,8 +19,6 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import java.io.File;
 import java.util.List;
@@ -194,64 +190,64 @@ public class PhotosActivity extends Activity {
         }
     }
 
-
-    class PhotoListener implements ImageLoadingListener {
-
-
-        @Override
-        public void onLoadingStarted(String s, View view) {
-
-        }
-
-        @Override
-        public void onLoadingFailed(String s, View view, FailReason failReason) {
-
-        }
-
-        @Override
-        public void onLoadingComplete(String s, View view, Bitmap bitmap) {
-
-            Uri uri = Uri.parse(s);
-
-            try {
-                //android读取图片EXIF信息
-                ExifInterface exifInterface = new ExifInterface(uri.getPath());
-
-                String width = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH);
-                String height = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH);
-                Log.d(TAG, width + "+" + height);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-
-//            ImageView imageView = (ImageView) view;
-//            imageView.setImageBitmap(ImageCrop(bitmap));
-
-
-        }
-
-        @Override
-        public void onLoadingCancelled(String s, View view) {
-
-        }
-    }
-
-    /**
-     * 按正方形裁切图片
-     */
-    public static Bitmap ImageCrop(Bitmap bitmap) {
-        int w = bitmap.getWidth(); // 得到图片的宽，高
-        int h = bitmap.getHeight();
-
-        int wh = w > h ? h : w;// 裁切后所取的正方形区域边长
-
-        int retX = w > h ? (w - h) / 2 : 0;//基于原图，取正方形左上角x坐标
-        int retY = w > h ? 0 : (h - w) / 2;
-
-        //下面这句是关键
-        return Bitmap.createBitmap(bitmap, retX, retY, wh, wh, null, false);
-    }
+//
+//    class PhotoListener implements ImageLoadingListener {
+//
+//
+//        @Override
+//        public void onLoadingStarted(String s, View view) {
+//
+//        }
+//
+//        @Override
+//        public void onLoadingFailed(String s, View view, FailReason failReason) {
+//
+//        }
+//
+//        @Override
+//        public void onLoadingComplete(String s, View view, Bitmap bitmap) {
+//
+//            Uri uri = Uri.parse(s);
+//
+//            try {
+//                //android读取图片EXIF信息
+//                ExifInterface exifInterface = new ExifInterface(uri.getPath());
+//
+//                String width = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH);
+//                String height = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH);
+//                Log.d(TAG, width + "+" + height);
+//
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//
+//
+////            ImageView imageView = (ImageView) view;
+////            imageView.setImageBitmap(ImageCrop(bitmap));
+//
+//
+//        }
+//
+//        @Override
+//        public void onLoadingCancelled(String s, View view) {
+//
+//        }
+//    }
+//
+//    /**
+//     * 按正方形裁切图片
+//     */
+//    public static Bitmap ImageCrop(Bitmap bitmap) {
+//        int w = bitmap.getWidth(); // 得到图片的宽，高
+//        int h = bitmap.getHeight();
+//
+//        int wh = w > h ? h : w;// 裁切后所取的正方形区域边长
+//
+//        int retX = w > h ? (w - h) / 2 : 0;//基于原图，取正方形左上角x坐标
+//        int retY = w > h ? 0 : (h - w) / 2;
+//
+//        //下面这句是关键
+//        return Bitmap.createBitmap(bitmap, retX, retY, wh, wh, null, false);
+//    }
 
 }

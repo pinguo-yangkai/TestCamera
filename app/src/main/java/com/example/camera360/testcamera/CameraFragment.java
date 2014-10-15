@@ -20,7 +20,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -43,7 +42,9 @@ public class CameraFragment extends Fragment implements
     private RelativeLayout mainlayout;
     private ImageButton takePhotoBtn;
     private ResizableCameraPreview mPreview;
-    private SeekBar zoomSeekbar;
+    //    private SeekBar zoomSeekbar;
+    private MySeekBar mySeekBar;
+
     private File saveFile;
     private boolean isLongPress = false;
     //预览尺寸Adapter
@@ -86,16 +87,35 @@ public class CameraFragment extends Fragment implements
         takePhotoBtn = (ImageButton) view.findViewById(R.id.takephoto_btn);
         takePhotoBtn.setOnClickListener(this);
         takePhotoBtn.setOnLongClickListener(this);
-        zoomSeekbar = (SeekBar) view.findViewById(R.id.zoom_seekbar);
-        zoomSeekbar.setOnSeekBarChangeListener(onSeekBarChangeListener);
-        showSeekbar();
-        zoomSeekbar.setOnTouchListener(new View.OnTouchListener() {
+//        zoomSeekbar = (SeekBar) view.findViewById(R.id.zoom_seekbar);
+//        zoomSeekbar.setOnSeekBarChangeListener(onSeekBarChangeListener);
+//        showSeekbar();
+//        zoomSeekbar.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View view, MotionEvent motionEvent) {
+//                showSeekbar();
+//                return false;
+//            }
+//        });
+
+        mySeekBar = (MySeekBar) view.findViewById(R.id.myseekbar);
+        mySeekBar.setSeekBarListener(new MySeekBar.OnSeekListener() {
+            @Override
+            public void onProgressChanged(MySeekBar seekBar, int i) {
+                if (null != mPreview && mPreview.isZoomSupport()) {
+                    mPreview.setZoom(i);
+                }
+            }
+        });
+        mySeekBar.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 showSeekbar();
                 return false;
             }
         });
+
+        showSeekbar();
 
         sizeSpinner = (Spinner) view.findViewById(R.id.size_spinner);
         sizeAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item);
@@ -112,7 +132,7 @@ public class CameraFragment extends Fragment implements
      */
     public void showSeekbar() {
         handler.removeCallbacks(runnable);
-        zoomSeekbar.setVisibility(View.VISIBLE);
+        mySeekBar.setVisibility(View.VISIBLE);
         handler.postDelayed(runnable, 2000);
     }
 
@@ -127,7 +147,7 @@ public class CameraFragment extends Fragment implements
 
         @Override
         public void run() {
-            zoomSeekbar.setVisibility(View.GONE);
+            mySeekBar.setVisibility(View.GONE);
         }
     };
 
@@ -169,8 +189,8 @@ public class CameraFragment extends Fragment implements
         });
         RelativeLayout.LayoutParams previewLayoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         mainlayout.addView(mPreview, 0, previewLayoutParams);
-        zoomSeekbar.setMax(mPreview.getMaxZoom());
-        zoomSeekbar.setProgress(0);
+        mySeekBar.setMax(mPreview.getMaxZoom());
+        mySeekBar.setProgress(0);
 
         sizeAdapter.clear();
         sizeAdapter.add("默认");
@@ -193,36 +213,37 @@ public class CameraFragment extends Fragment implements
     }
 
 
-    SeekBar.OnSeekBarChangeListener onSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
-
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-            Log.d(TAG, i + "+" + b);
-
-            if (null != mPreview && mPreview.isZoomSupport()) {
-                mPreview.setZoom(i);
-            }
-
-        }
-
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-
-        }
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-
-        }
-    };
+//    SeekBar.OnSeekBarChangeListener onSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+//
+//        @Override
+//        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+//            Log.d(TAG, i + "+" + b);
+//
+//            if (null != mPreview && mPreview.isZoomSupport()) {
+//                mPreview.setZoom(i);
+//            }
+//
+//        }
+//
+//        @Override
+//        public void onStartTrackingTouch(SeekBar seekBar) {
+//
+//        }
+//
+//        @Override
+//        public void onStopTrackingTouch(SeekBar seekBar) {
+//
+//        }
+//    };
 
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.takephoto_btn:
-                if (isLongPress) {
+                if (isLongPress && null != mPreview) {
                     mPreview.takePacture(mPicture);
+                    isLongPress = false;
                 }
                 break;
             case R.id.photo_btn:
@@ -324,10 +345,10 @@ public class CameraFragment extends Fragment implements
      */
     public void zoomUp() {
         showSeekbar();
-        int progress = zoomSeekbar.getProgress();
-        if (progress < zoomSeekbar.getMax()) {
+        int progress = mySeekBar.getProgress();
+        if (progress < mySeekBar.getMax()) {
             progress++;
-            zoomSeekbar.setProgress(progress);
+            mySeekBar.setProgress(progress);
         }
     }
 
@@ -336,10 +357,10 @@ public class CameraFragment extends Fragment implements
      */
     public void zoomDown() {
         showSeekbar();
-        int progress = zoomSeekbar.getProgress();
+        int progress = mySeekBar.getProgress();
         if (progress > 0) {
             progress--;
-            zoomSeekbar.setProgress(progress);
+            mySeekBar.setProgress(progress);
         }
     }
 
